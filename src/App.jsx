@@ -56,7 +56,7 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Export to Excel
+  // Export to Excel (RTL)
   const exportToExcel = () => {
     if (deacons.length === 0) {
       showToast("لا يوجد بيانات للتصدير", "error");
@@ -69,23 +69,52 @@ export default function App() {
       "رقم الموبايل", "محل الإقامة", "ملاحظات"
     ];
     const rows = deacons.map((d, i) => [
-      i + 1, d.full_name, d.date_of_birth || "", d.deacon_rank || "",
+      i + 1, d.full_name || "", d.date_of_birth || "", d.deacon_rank || "",
       d.ordination_date || "", d.ordination_title || "", d.ordination_name || "",
       d.service_type || "", d.confession_father || "", d.marital_status || "",
       d.profession || "", d.mobile_number || "", d.residence || "", d.notes || ""
     ]);
 
-    // Build CSV with BOM for Arabic support in Excel
-    const BOM = "\uFEFF";
-    const csv = BOM + [headers, ...rows]
-      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
+    // Build HTML table that Excel opens as RTL
+    const html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:x="urn:schemas-microsoft-com:office:excel">
+      <head>
+        <meta charset="utf-8">
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>بيانات الشمامسة</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayRightToLeft/>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <style>
+          table { direction: rtl; border-collapse: collapse; }
+          th { background: #1a365d; color: white; font-weight: bold; padding: 8px; border: 1px solid #999; text-align: center; }
+          td { padding: 6px 8px; border: 1px solid #ccc; text-align: right; }
+          tr:nth-child(even) td { background: #f5f0e8; }
+        </style>
+      </head>
+      <body>
+        <table dir="rtl">
+          <thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+          <tbody>${rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table>
+      </body>
+      </html>`;
 
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "بيانات_الشمامسة.csv";
+    a.download = "بيانات_الشمامسة.xls";
     a.click();
     URL.revokeObjectURL(url);
     showToast("تم تصدير البيانات بنجاح");
@@ -380,11 +409,18 @@ export default function App() {
               <tr>
                 <th className="th-num">#</th>
                 <th>الاسم</th>
+                <th>تاريخ الميلاد</th>
                 <th>الرتبة</th>
-                <th className="hide-mobile">نوع الخدمة</th>
-                <th className="hide-mobile">أب الاعتراف</th>
+                <th>تاريخ السيامة</th>
+                <th>القائم بالسيامة</th>
+                <th>الاسم فى السيامة</th>
+                <th>نوع الخدمة</th>
+                <th>أب الاعتراف</th>
+                <th>الحالة الاجتماعية</th>
+                <th>المهنة</th>
                 <th>الموبايل</th>
-                <th className="hide-mobile">محل الإقامة</th>
+                <th>محل الإقامة</th>
+                <th>ملاحظات</th>
                 <th className="th-actions no-print">إجراءات</th>
               </tr>
             </thead>
@@ -393,15 +429,22 @@ export default function App() {
                 <tr key={d.id} onClick={() => setViewDeacon(d)}>
                   <td className="td-num">{i + 1}</td>
                   <td className="td-name">{d.full_name}</td>
+                  <td>{d.date_of_birth || "—"}</td>
                   <td>
-                    {d.deacon_rank && (
+                    {d.deacon_rank ? (
                       <span className="badge">{d.deacon_rank}</span>
-                    )}
+                    ) : "—"}
                   </td>
-                  <td className="hide-mobile">{d.service_type || "—"}</td>
-                  <td className="hide-mobile">{d.confession_father || "—"}</td>
+                  <td>{d.ordination_date || "—"}</td>
+                  <td>{d.ordination_title || "—"}</td>
+                  <td>{d.ordination_name || "—"}</td>
+                  <td>{d.service_type || "—"}</td>
+                  <td>{d.confession_father || "—"}</td>
+                  <td>{d.marital_status || "—"}</td>
+                  <td>{d.profession || "—"}</td>
                   <td dir="ltr" className="td-phone">{d.mobile_number || "—"}</td>
-                  <td className="hide-mobile">{d.residence || "—"}</td>
+                  <td>{d.residence || "—"}</td>
+                  <td>{d.notes || "—"}</td>
                   <td
                     className="td-actions no-print"
                     onClick={(e) => e.stopPropagation()}
@@ -523,4 +566,3 @@ function ViewRow({ label, value, highlight, badge, dir }) {
     </div>
   );
 }
-
