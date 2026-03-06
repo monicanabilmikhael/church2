@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "./lib/supabase";
+import * as XLSX from "xlsx";
 import "./App.css";
 
 const RANKS = [
@@ -56,7 +57,7 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Export to Excel (RTL)
+  // Export to Excel (proper .xlsx, RTL)
   const exportToExcel = () => {
     if (deacons.length === 0) {
       showToast("لا يوجد بيانات للتصدير", "error");
@@ -75,48 +76,26 @@ export default function App() {
       d.profession || "", d.mobile_number || "", d.residence || "", d.notes || ""
     ]);
 
-    // Build HTML table that Excel opens as RTL
-    const html = `
-      <html xmlns:o="urn:schemas-microsoft-com:office:office"
-            xmlns:x="urn:schemas-microsoft-com:office:excel">
-      <head>
-        <meta charset="utf-8">
-        <!--[if gte mso 9]>
-        <xml>
-          <x:ExcelWorkbook>
-            <x:ExcelWorksheets>
-              <x:ExcelWorksheet>
-                <x:Name>بيانات الشمامسة</x:Name>
-                <x:WorksheetOptions>
-                  <x:DisplayRightToLeft/>
-                </x:WorksheetOptions>
-              </x:ExcelWorksheet>
-            </x:ExcelWorksheets>
-          </x:ExcelWorkbook>
-        </xml>
-        <![endif]-->
-        <style>
-          table { direction: rtl; border-collapse: collapse; }
-          th { background: #1a365d; color: white; font-weight: bold; padding: 8px; border: 1px solid #999; text-align: center; }
-          td { padding: 6px 8px; border: 1px solid #ccc; text-align: right; }
-          tr:nth-child(even) td { background: #f5f0e8; }
-        </style>
-      </head>
-      <body>
-        <table dir="rtl">
-          <thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
-          <tbody>${rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")}</tbody>
-        </table>
-      </body>
-      </html>`;
+    const wsData = [headers, ...rows];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "بيانات_الشمامسة.xls";
-    a.click();
-    URL.revokeObjectURL(url);
+    // Set RTL and column widths
+    ws["!cols"] = [
+      { wch: 5 }, { wch: 25 }, { wch: 14 }, { wch: 15 }, { wch: 14 },
+      { wch: 18 }, { wch: 18 }, { wch: 15 },
+      { wch: 18 }, { wch: 15 }, { wch: 20 },
+      { wch: 15 }, { wch: 20 }, { wch: 20 }
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "بيانات الشمامسة");
+
+    // Set RTL for the sheet
+    if (!wb.Workbook) wb.Workbook = {};
+    if (!wb.Workbook.Views) wb.Workbook.Views = [{}];
+    wb.Workbook.Views[0].RTL = true;
+
+    XLSX.writeFile(wb, "بيانات_الشمامسة.xlsx");
     showToast("تم تصدير البيانات بنجاح");
   };
 
