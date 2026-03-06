@@ -4,10 +4,22 @@ import "./App.css";
 
 const RANKS = [
   "أبصالتس",
-  "اغنسطس",
+  "أغنسطس",
   "إيبوذياكون",
-  "دياكون",
+  "ذياكون",
   "أرشيذياكون",
+];
+
+const SERVICE_TYPES = [
+  "داخل الهيكل",
+  "خارج الهيكل",
+  "داخل وخارج الهيكل",
+];
+
+const MARITAL_OPTIONS = [
+  "أعزب",
+  "متزوج",
+  "أرمل",
 ];
 
 const EMPTY = {
@@ -15,11 +27,15 @@ const EMPTY = {
   date_of_birth: "",
   deacon_rank: "",
   ordination_date: "",
+  ordination_title: "",
   ordination_name: "",
+  service_type: "",
   confession_father: "",
+  marital_status: "",
   profession: "",
   mobile_number: "",
   residence: "",
+  notes: "",
 };
 
 export default function App() {
@@ -38,6 +54,46 @@ export default function App() {
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  // Export to Excel
+  const exportToExcel = () => {
+    if (deacons.length === 0) {
+      showToast("لا يوجد بيانات للتصدير", "error");
+      return;
+    }
+    const headers = [
+      "م", "الاسم", "تاريخ الميلاد", "الرتبة الشمامسة", "تاريخ السيامة",
+      "القائم بالسيامة", "الاسم فى السيامة", "نوع الخدمة",
+      "أب الاعتراف", "الحالة الاجتماعية", "المهنة أو الوظيفة",
+      "رقم الموبايل", "محل الإقامة", "ملاحظات"
+    ];
+    const rows = deacons.map((d, i) => [
+      i + 1, d.full_name, d.date_of_birth || "", d.deacon_rank || "",
+      d.ordination_date || "", d.ordination_title || "", d.ordination_name || "",
+      d.service_type || "", d.confession_father || "", d.marital_status || "",
+      d.profession || "", d.mobile_number || "", d.residence || "", d.notes || ""
+    ]);
+
+    // Build CSV with BOM for Arabic support in Excel
+    const BOM = "\uFEFF";
+    const csv = BOM + [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "بيانات_الشمامسة.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("تم تصدير البيانات بنجاح");
+  };
+
+  // Print table
+  const handlePrint = () => {
+    window.print();
   };
 
   // Fetch deacons
@@ -151,11 +207,15 @@ export default function App() {
       date_of_birth: d.date_of_birth || "",
       deacon_rank: d.deacon_rank || "",
       ordination_date: d.ordination_date || "",
+      ordination_title: d.ordination_title || "",
       ordination_name: d.ordination_name || "",
+      service_type: d.service_type || "",
       confession_father: d.confession_father || "",
+      marital_status: d.marital_status || "",
       profession: d.profession || "",
       mobile_number: d.mobile_number || "",
       residence: d.residence || "",
+      notes: d.notes || "",
     });
     setEditingId(d.id);
     setShowForm(true);
@@ -174,7 +234,7 @@ export default function App() {
   };
 
   const renderField = (key, label, type = "text") => (
-    <div className="field" key={key}>
+    <div className={`field ${key === "notes" ? "field-full" : ""}`} key={key}>
       <label>{label}</label>
       {key === "deacon_rank" ? (
         <select
@@ -183,11 +243,36 @@ export default function App() {
         >
           <option value="">— اختر الرتبة —</option>
           {RANKS.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
+            <option key={r} value={r}>{r}</option>
           ))}
         </select>
+      ) : key === "service_type" ? (
+        <select
+          value={form[key]}
+          onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+        >
+          <option value="">— اختر نوع الخدمة —</option>
+          {SERVICE_TYPES.map((r) => (
+            <option key={r} value={r}>{r}</option>
+          ))}
+        </select>
+      ) : key === "marital_status" ? (
+        <select
+          value={form[key]}
+          onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+        >
+          <option value="">— اختر الحالة —</option>
+          {MARITAL_OPTIONS.map((r) => (
+            <option key={r} value={r}>{r}</option>
+          ))}
+        </select>
+      ) : key === "notes" ? (
+        <textarea
+          value={form[key]}
+          onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+          placeholder={label}
+          rows={2}
+        />
       ) : (
         <input
           type={type}
@@ -214,7 +299,7 @@ export default function App() {
       {/* Header */}
       <header className="header">
         <div className="header-cross">☦</div>
-        <h1>بيانات شمامسة كنيسة العذراء مريم بمرسي مطروح</h1>
+        <h1>بيانات شمامسة كنيسة العذراء مريم</h1>
         <p className="header-sub">نظام إدارة وحفظ بيانات الشمامسة</p>
         <div className="header-ornament" />
       </header>
@@ -266,6 +351,12 @@ export default function App() {
         >
           <span>+</span> إضافة شماس
         </button>
+        <button className="btn btn-excel" onClick={exportToExcel}>
+          📊 تصدير Excel
+        </button>
+        <button className="btn btn-print" onClick={handlePrint}>
+          🖨️ طباعة
+        </button>
       </div>
 
       {/* Table */}
@@ -288,12 +379,13 @@ export default function App() {
             <thead>
               <tr>
                 <th className="th-num">#</th>
-                <th>الاسم ثلاثي</th>
+                <th>الاسم</th>
                 <th>الرتبة</th>
+                <th className="hide-mobile">نوع الخدمة</th>
                 <th className="hide-mobile">أب الاعتراف</th>
                 <th>الموبايل</th>
                 <th className="hide-mobile">محل الإقامة</th>
-                <th className="th-actions">إجراءات</th>
+                <th className="th-actions no-print">إجراءات</th>
               </tr>
             </thead>
             <tbody>
@@ -306,11 +398,12 @@ export default function App() {
                       <span className="badge">{d.deacon_rank}</span>
                     )}
                   </td>
+                  <td className="hide-mobile">{d.service_type || "—"}</td>
                   <td className="hide-mobile">{d.confession_father || "—"}</td>
                   <td dir="ltr" className="td-phone">{d.mobile_number || "—"}</td>
                   <td className="hide-mobile">{d.residence || "—"}</td>
                   <td
-                    className="td-actions"
+                    className="td-actions no-print"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
@@ -349,11 +442,15 @@ export default function App() {
                 {renderField("date_of_birth", "تاريخ الميلاد", "date")}
                 {renderField("deacon_rank", "الرتبة الشمامسة")}
                 {renderField("ordination_date", "تاريخ السيامة", "date")}
+                {renderField("ordination_title", "القائم بالسيامة")}
                 {renderField("ordination_name", "الاسم فى السيامة")}
+                {renderField("service_type", "نوع الخدمة")}
                 {renderField("confession_father", "أب الاعتراف")}
+                {renderField("marital_status", "الحالة الاجتماعية")}
                 {renderField("profession", "المهنة أو الوظيفة")}
                 {renderField("mobile_number", "رقم الموبايل", "tel")}
                 {renderField("residence", "محل الإقامة")}
+                {renderField("notes", "ملاحظات")}
               </div>
               <div className="modal-footer">
                 <button type="submit" className="btn btn-save" disabled={saving}>
@@ -381,11 +478,15 @@ export default function App() {
               <ViewRow label="تاريخ الميلاد" value={viewDeacon.date_of_birth} />
               <ViewRow label="الرتبة" value={viewDeacon.deacon_rank} badge />
               <ViewRow label="تاريخ السيامة" value={viewDeacon.ordination_date} />
+              <ViewRow label="القائم بالسيامة" value={viewDeacon.ordination_title} />
               <ViewRow label="الاسم فى السيامة" value={viewDeacon.ordination_name} />
+              <ViewRow label="نوع الخدمة" value={viewDeacon.service_type} />
               <ViewRow label="أب الاعتراف" value={viewDeacon.confession_father} />
+              <ViewRow label="الحالة الاجتماعية" value={viewDeacon.marital_status} />
               <ViewRow label="المهنة أو الوظيفة" value={viewDeacon.profession} />
               <ViewRow label="رقم الموبايل" value={viewDeacon.mobile_number} dir="ltr" />
               <ViewRow label="محل الإقامة" value={viewDeacon.residence} />
+              <ViewRow label="ملاحظات" value={viewDeacon.notes} />
             </div>
             <div className="modal-footer">
               <button className="btn btn-save" onClick={() => openEdit(viewDeacon)}>
@@ -422,3 +523,4 @@ function ViewRow({ label, value, highlight, badge, dir }) {
     </div>
   );
 }
+
