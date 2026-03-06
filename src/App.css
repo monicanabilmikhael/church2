@@ -331,10 +331,12 @@ body {
   position: relative;
   z-index: 1;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   background: var(--white);
@@ -365,6 +367,7 @@ td {
   font-size: 0.9rem;
   border-bottom: 1px solid #f0ebe3;
   transition: background 0.15s;
+  white-space: nowrap;
 }
 
 tbody tr {
@@ -640,9 +643,7 @@ tbody tr:last-child td {
   .form-grid { grid-template-columns: 1fr; padding: 1rem; }
 
   .table-wrap { padding: 0 0.75rem 2rem; }
-  th, td { padding: 0.5rem 0.6rem; font-size: 0.8rem; }
-
-  .hide-mobile { display: none; }
+  th, td { padding: 0.5rem 0.6rem; font-size: 0.8rem; white-space: nowrap; }
 
   .modal { max-width: 100%; margin: 0.5rem; }
 }
@@ -670,12 +671,11 @@ tbody tr:last-child td {
   .header-ornament { display: none; }
 
   .table-wrap { padding: 0; }
-  table { box-shadow: none; border: 1px solid #333; }
+  table { box-shadow: none; border: 1px solid #333; width: 100%; }
   thead { background: #eee !important; }
-  th { color: black !important; font-size: 0.75rem; padding: 0.4rem 0.5rem; }
-  td { font-size: 0.75rem; padding: 0.35rem 0.5rem; border-bottom: 1px solid #ccc; }
+  th { color: black !important; font-size: 0.65rem; padding: 0.3rem 0.4rem; }
+  td { font-size: 0.65rem; padding: 0.25rem 0.4rem; border-bottom: 1px solid #ccc; white-space: normal; }
   .badge { background: #eee; color: black; border: 1px solid #999; }
-  .hide-mobile { display: table-cell !important; }
   tbody tr:hover td { background: none; }
 
   @page {
