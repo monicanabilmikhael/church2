@@ -290,6 +290,28 @@ body {
   background: #e8dfd0;
 }
 
+.btn-excel {
+  background: linear-gradient(135deg, #15803d, #22c55e);
+  color: white;
+  box-shadow: 0 2px 8px rgba(21,128,61,0.25);
+}
+
+.btn-excel:hover {
+  box-shadow: 0 4px 16px rgba(21,128,61,0.35);
+  transform: translateY(-1px);
+}
+
+.btn-print {
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+}
+
+.btn-print:hover {
+  box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+  transform: translateY(-1px);
+}
+
 .icon-btn {
   background: none;
   border: none;
@@ -503,7 +525,8 @@ tbody tr:last-child td {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -511,14 +534,20 @@ tbody tr:last-child td {
   font-size: 0.9rem;
   background: var(--cream);
   transition: all 0.2s;
+  resize: vertical;
 }
 
 .field input:focus,
-.field select:focus {
+.field select:focus,
+.field textarea:focus {
   outline: none;
   border-color: var(--navy-light);
   background: var(--white);
   box-shadow: 0 0 0 3px rgba(38,64,110,0.1);
+}
+
+.field-full {
+  grid-column: 1 / -1;
 }
 
 .modal-footer {
@@ -621,4 +650,36 @@ tbody tr:last-child td {
 @media (max-width: 480px) {
   .stats { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; padding-bottom: 0.5rem; }
   .stat-card { flex-shrink: 0; }
+}
+
+/* ===== Print Styles ===== */
+@media print {
+  body { background: white; }
+  .bg-pattern, .toolbar, .footer, .no-print, .toast { display: none !important; }
+  .stats { display: none; }
+
+  .header {
+    background: none !important;
+    color: black;
+    padding: 1rem 0;
+    border-bottom: 3px double #333;
+  }
+  .header-cross { color: #333; text-shadow: none; }
+  .header h1 { font-size: 1.4rem; color: black; text-shadow: none; }
+  .header-sub { color: #555; }
+  .header-ornament { display: none; }
+
+  .table-wrap { padding: 0; }
+  table { box-shadow: none; border: 1px solid #333; }
+  thead { background: #eee !important; }
+  th { color: black !important; font-size: 0.75rem; padding: 0.4rem 0.5rem; }
+  td { font-size: 0.75rem; padding: 0.35rem 0.5rem; border-bottom: 1px solid #ccc; }
+  .badge { background: #eee; color: black; border: 1px solid #999; }
+  .hide-mobile { display: table-cell !important; }
+  tbody tr:hover td { background: none; }
+
+  @page {
+    size: landscape;
+    margin: 1cm;
+  }
 }
