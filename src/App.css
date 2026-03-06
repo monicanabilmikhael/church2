@@ -401,9 +401,7 @@ tbody tr:last-child td {
 
 .td-actions {
   text-align: center;
-  display: flex;
-  gap: 0.2rem;
-  justify-content: center;
+  white-space: nowrap;
 }
 
 .badge {
