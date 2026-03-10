@@ -99,10 +99,8 @@ body {
 }
 
 .header-cross {
-  font-size: 3rem;
   margin-bottom: 0.5rem;
-  text-shadow: 0 0 30px rgba(201,168,76,0.5);
-  color: var(--gold);
+  filter: drop-shadow(0 0 20px rgba(201,168,76,0.5));
   position: relative;
 }
 
@@ -604,10 +602,9 @@ tbody tr:last-child td {
   z-index: 1;
 }
 
-.footer-cross {
-  color: var(--gold);
-  font-size: 1.3rem;
-  margin-bottom: 0.25rem;
+.footer-cross-svg {
+  display: block;
+  margin: 0 auto 0.4rem;
 }
 
 /* ===== Animations ===== */
@@ -663,7 +660,8 @@ tbody tr:last-child td {
     padding: 1rem 0;
     border-bottom: 3px double #333;
   }
-  .header-cross { color: #333; text-shadow: none; }
+  .header-cross { filter: none; }
+  .header-cross rect, .header-cross circle { fill: #333; }
   .header h1 { font-size: 1.4rem; color: black; text-shadow: none; }
   .header-sub { color: #555; }
   .header-ornament { display: none; }
