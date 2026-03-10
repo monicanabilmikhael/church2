@@ -39,6 +39,43 @@ const EMPTY = {
   notes: "",
 };
 
+// Coptic Orthodox Cross SVG Component
+function CopticCross({ size = 48, color = "currentColor", className = "" }) {
+  return (
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Main vertical beam */}
+      <rect x="42" y="5" width="16" height="90" rx="2" fill={color} />
+      {/* Main horizontal beam */}
+      <rect x="18" y="28" width="64" height="16" rx="2" fill={color} />
+      {/* Top small horizontal */}
+      <rect x="32" y="12" width="36" height="10" rx="2" fill={color} />
+      {/* Left small vertical */}
+      <rect x="22" y="22" width="10" height="28" rx="2" fill={color} />
+      {/* Right small vertical */}
+      <rect x="68" y="22" width="10" height="28" rx="2" fill={color} />
+      {/* Bottom left small horizontal */}
+      <rect x="28" y="50" width="18" height="8" rx="1.5" fill={color} />
+      {/* Bottom right small horizontal */}
+      <rect x="54" y="50" width="18" height="8" rx="1.5" fill={color} />
+      {/* Circle center */}
+      <circle cx="50" cy="36" r="6" fill={color} opacity="0.15" />
+      <circle cx="50" cy="36" r="6" stroke={color} strokeWidth="2" fill="none" />
+      {/* Small circles at ends */}
+      <circle cx="50" cy="8" r="3" fill={color} />
+      <circle cx="21" cy="36" r="3" fill={color} />
+      <circle cx="79" cy="36" r="3" fill={color} />
+      <circle cx="50" cy="92" r="3" fill={color} />
+    </svg>
+  );
+}
+
 export default function App() {
   const [deacons, setDeacons] = useState([]);
   const [search, setSearch] = useState("");
@@ -79,7 +116,6 @@ export default function App() {
     const wsData = [headers, ...rows];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    // Set RTL and column widths
     ws["!cols"] = [
       { wch: 5 }, { wch: 25 }, { wch: 14 }, { wch: 15 }, { wch: 14 },
       { wch: 18 }, { wch: 18 }, { wch: 15 },
@@ -90,7 +126,6 @@ export default function App() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "بيانات الشمامسة");
 
-    // Set RTL for the sheet
     if (!wb.Workbook) wb.Workbook = {};
     if (!wb.Workbook.Views) wb.Workbook.Views = [{}];
     wb.Workbook.Views[0].RTL = true;
@@ -99,12 +134,10 @@ export default function App() {
     showToast("تم تصدير البيانات بنجاح");
   };
 
-  // Print table
   const handlePrint = () => {
     window.print();
   };
 
-  // Fetch deacons
   const fetchDeacons = useCallback(async () => {
     setLoading(true);
     let query = supabase
@@ -127,7 +160,6 @@ export default function App() {
       showToast("خطأ في تحميل البيانات: " + error.message, "error");
     } else {
       setDeacons(data || []);
-      // Calculate stats
       const total = data?.length || 0;
       const byRank = {};
       (data || []).forEach((d) => {
@@ -143,7 +175,6 @@ export default function App() {
     fetchDeacons();
   }, [fetchDeacons]);
 
-  // Create
   const handleCreate = async () => {
     if (!form.full_name.trim()) {
       showToast("الاسم ثلاثي مطلوب", "error");
@@ -151,7 +182,6 @@ export default function App() {
     }
     setSaving(true);
     const payload = { ...form };
-    // Remove empty strings
     Object.keys(payload).forEach((k) => {
       if (payload[k] === "") payload[k] = null;
     });
@@ -161,14 +191,13 @@ export default function App() {
     if (error) {
       showToast("خطأ: " + error.message, "error");
     } else {
-      showToast("تم إضافة الشماس بنجاح ☦");
+      showToast("تم إضافة الشماس بنجاح");
       setForm(EMPTY);
       setShowForm(false);
       fetchDeacons();
     }
   };
 
-  // Update
   const handleUpdate = async () => {
     if (!form.full_name.trim()) {
       showToast("الاسم ثلاثي مطلوب", "error");
@@ -188,7 +217,7 @@ export default function App() {
     if (error) {
       showToast("خطأ: " + error.message, "error");
     } else {
-      showToast("تم تعديل البيانات بنجاح ☦");
+      showToast("تم تعديل البيانات بنجاح");
       setForm(EMPTY);
       setEditingId(null);
       setShowForm(false);
@@ -196,7 +225,6 @@ export default function App() {
     }
   };
 
-  // Delete
   const handleDelete = async (id, name) => {
     if (!window.confirm(`هل أنت متأكد من حذف "${name}"؟`)) return;
     const { error } = await supabase.from("deacons").delete().eq("id", id);
@@ -294,10 +322,8 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Background decoration */}
       <div className="bg-pattern" />
 
-      {/* Toast */}
       {toast && (
         <div className={`toast toast-${toast.type}`}>
           {toast.msg}
@@ -306,8 +332,8 @@ export default function App() {
 
       {/* Header */}
       <header className="header">
-        <div className="header-cross">☦</div>
-        <h1> بيانات شمامسة كنيسة العذراء مريم بمرسي مطروحٍٍ</h1>
+        <CopticCross size={64} color="#c9a84c" className="header-cross" />
+        <h1>بيانات شمامسة كنيسة العذراء مريم بمرسي مطروح</h1>
         <p className="header-sub">نظام إدارة وحفظ بيانات الشمامسة</p>
         <div className="header-ornament" />
       </header>
@@ -344,18 +370,12 @@ export default function App() {
         >
           <option value="">كل الرتب</option>
           {RANKS.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
+            <option key={r} value={r}>{r}</option>
           ))}
         </select>
         <button
           className="btn btn-add"
-          onClick={() => {
-            setForm(EMPTY);
-            setEditingId(null);
-            setShowForm(true);
-          }}
+          onClick={() => { setForm(EMPTY); setEditingId(null); setShowForm(true); }}
         >
           <span>+</span> إضافة شماس
         </button>
@@ -409,11 +429,7 @@ export default function App() {
                   <td className="td-num">{i + 1}</td>
                   <td className="td-name">{d.full_name}</td>
                   <td>{d.date_of_birth || "—"}</td>
-                  <td>
-                    {d.deacon_rank ? (
-                      <span className="badge">{d.deacon_rank}</span>
-                    ) : "—"}
-                  </td>
+                  <td>{d.deacon_rank ? <span className="badge">{d.deacon_rank}</span> : "—"}</td>
                   <td>{d.ordination_date || "—"}</td>
                   <td>{d.ordination_title || "—"}</td>
                   <td>{d.ordination_name || "—"}</td>
@@ -424,24 +440,9 @@ export default function App() {
                   <td dir="ltr" className="td-phone">{d.mobile_number || "—"}</td>
                   <td>{d.residence || "—"}</td>
                   <td>{d.notes || "—"}</td>
-                  <td
-                    className="td-actions no-print"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      className="icon-btn edit"
-                      title="تعديل"
-                      onClick={() => openEdit(d)}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="icon-btn delete"
-                      title="حذف"
-                      onClick={() => handleDelete(d.id, d.full_name)}
-                    >
-                      🗑️
-                    </button>
+                  <td className="td-actions no-print" onClick={(e) => e.stopPropagation()}>
+                    <button className="icon-btn edit" title="تعديل" onClick={() => openEdit(d)}>✏️</button>
+                    <button className="icon-btn delete" title="حذف" onClick={() => handleDelete(d.id, d.full_name)}>🗑️</button>
                   </td>
                 </tr>
               ))}
@@ -455,7 +456,7 @@ export default function App() {
         <div className="overlay" onClick={closeForm}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{editingId ? "✏️ تعديل بيانات الشماس" : "☦ إضافة شماس جديد"}</h2>
+              <h2>{editingId ? "✏️ تعديل بيانات الشماس" : ""}{!editingId && <><CopticCross size={22} color="#0f1d3a" /> إضافة شماس جديد</>}</h2>
               <button className="close-btn" onClick={closeForm}>✕</button>
             </div>
             <form onSubmit={handleSubmit}>
@@ -478,9 +479,7 @@ export default function App() {
                 <button type="submit" className="btn btn-save" disabled={saving}>
                   {saving ? "جاري الحفظ..." : editingId ? "حفظ التعديلات" : "إضافة الشماس"}
                 </button>
-                <button type="button" className="btn btn-cancel" onClick={closeForm}>
-                  إلغاء
-                </button>
+                <button type="button" className="btn btn-cancel" onClick={closeForm}>إلغاء</button>
               </div>
             </form>
           </div>
@@ -492,7 +491,7 @@ export default function App() {
         <div className="overlay" onClick={() => setViewDeacon(null)}>
           <div className="modal modal-view" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>☦ بيانات الشماس</h2>
+              <h2><CopticCross size={22} color="#0f1d3a" /> بيانات الشماس</h2>
               <button className="close-btn" onClick={() => setViewDeacon(null)}>✕</button>
             </div>
             <div className="view-content">
@@ -511,12 +510,8 @@ export default function App() {
               <ViewRow label="ملاحظات" value={viewDeacon.notes} />
             </div>
             <div className="modal-footer">
-              <button className="btn btn-save" onClick={() => openEdit(viewDeacon)}>
-                ✏️ تعديل
-              </button>
-              <button className="btn btn-cancel" onClick={() => setViewDeacon(null)}>
-                إغلاق
-              </button>
+              <button className="btn btn-save" onClick={() => openEdit(viewDeacon)}>✏️ تعديل</button>
+              <button className="btn btn-cancel" onClick={() => setViewDeacon(null)}>إغلاق</button>
             </div>
           </div>
         </div>
@@ -524,7 +519,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="footer">
-        <div className="footer-cross">☦</div>
+        <CopticCross size={28} color="#c9a84c" className="footer-cross-svg" />
         <p>كنيسة العذراء مريم — نظام إدارة بيانات الشمامسة</p>
       </footer>
     </div>
@@ -536,11 +531,7 @@ function ViewRow({ label, value, highlight, badge, dir }) {
     <div className={`view-row ${highlight ? "view-highlight" : ""}`}>
       <span className="view-label">{label}</span>
       <span className="view-value" dir={dir}>
-        {badge && value ? (
-          <span className="badge">{value}</span>
-        ) : (
-          value || "—"
-        )}
+        {badge && value ? <span className="badge">{value}</span> : value || "—"}
       </span>
     </div>
   );
